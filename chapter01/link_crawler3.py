@@ -3,7 +3,7 @@ from urllib import robotparser,parse,error
 import urllib.request       #???为啥from urllib import request就用不了???
 import time
 import datetime
-
+import re
 
 def link_crawler(seed_url,link_regex=None,delay=5,max_depth=-1,max_urls=-1,headers=None,user_agent='wswp',proxy=None,num_retries=1):
     '''
@@ -27,13 +27,20 @@ def link_crawler(seed_url,link_regex=None,delay=5,max_depth=-1,max_urls=-1,heade
         if rp.can_fetch(user_agent,url):
             throttle.wait(url)
             html = download(url,headers,proxy=proxy,num_retries=num_retries)
-            link = []
+            links = []
 
             depth = seen[url]
             if depth != max_depth:
                 #可以继续爬
                 if link_regex:
+                    #过滤符合正则表达式的链接
+                    links.extend(link for link in get_links(html) if re.match(link_regex,link))
+
+                for link in links:
                     link = normalize(seed_url,link)
+                    #检查是否爬过相同的域名
+                    if same_domain(seed_url,link):
+                        #成功，把该链接加入队列
 
 
 
@@ -94,5 +101,19 @@ def download(url,headers,proxy,num_retries,data=None):
 
 def normalize(seed_url,link):
     """
-    
+    通过去除hash和添加域名标准化URL
     """
+    link, _ = parse.urldefrag(link) #去除hash避免重复
+    return parse.urljoin(seed_url,link)
+
+def get_links(html):
+    """
+    返回包含html中的链接的链表
+    """
+    #一个从网页中提取所有链接的正则表达式
+    webpage_regex = re.compile('<a[^>]+href=["\'](.*?)["\']',re.IGNORECASE)
+    #网页中所有的链接
+    return webpage_regex.findall(html)
+
+def same_domain(url1,url2):
+
