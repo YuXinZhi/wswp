@@ -10,12 +10,16 @@ def link_crawler(seed_url,link_regex=None,delay=5,max_depth=-1,max_urls=-1,heade
     爬取seed_url中匹配link_regex的链接
     '''
     #待爬取的URL队列
-    crawl_queue = Queue.deque([seed_url])
+    crawl_queue = Queue()
+    crawl_queue.put(seed_url)
+
+    print('crawl_queue',crawl_queue.get())
     #爬过的URL的深度
     seen = {seed_url:0}
     #记录有多少链接被下载
     num_urls = 0
     rp = get_robots(seed_url)
+    print(rp)
     throttle = Throttle(delay)
     headers = headers or {}
     if user_agent:
@@ -93,6 +97,7 @@ def download(url,headers,proxy,num_retries,data=None):
     try:
         response = opener.open(request)
         html = response.read()
+        html = html.encode('utf-8')
         code = response.code
     except error.URLError as e:
         print('Download error:',e.reason)
@@ -130,4 +135,5 @@ def same_domain(url1,url2):
 
 
 if __name__ == '__main__':
-    link_crawler('http://example.webscraping.com/places/default','/(index|view)',delay=0,num_retries=1,user_agent='BadCrawler')
+    link_crawler('http://example.webscraping.com/places/default/index','/(index|view)',delay=0,num_retries=1,user_agent='BadCrawler')
+    link_crawler('http://example.webscraping.com/places/default/index','/(index|view)',delay=0,num_retries=1,max_depth=1,user_agent='GoodCrawler')
