@@ -41,6 +41,14 @@ def link_crawler(seed_url,link_regex=None,delay=5,max_depth=-1,max_urls=-1,heade
                     #检查是否爬过相同的域名
                     if same_domain(seed_url,link):
                         #成功，把该链接加入队列
+                        crawl_queue.appenf(link)
+
+            #检查是否达到下载的最大深度
+            num_urls += 1
+            if num_urls == max_urls:
+                break
+        else:
+            print('Blocked by robots.txt:',url)
 
 
 
@@ -116,4 +124,10 @@ def get_links(html):
     return webpage_regex.findall(html)
 
 def same_domain(url1,url2):
+    #当两个URL属于同一个域名时返回TRUE
+    return parse.urlparse(url1).netloac == parse.urlparse(url2).netloc
 
+
+
+if __name__ == '__main__':
+    link_crawler('http://example.webscraping.com/places/default','/(index|view)',delay=0,num_retries=1,user_agent='BadCrawler')
